@@ -2,7 +2,10 @@ module github.com/markbates/table
 
 go 1.18
 
-require github.com/stretchr/testify v1.7.4
+require (
+	github.com/stretchr/testify v1.7.4
+	golang.org/x/net v0.8.0
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

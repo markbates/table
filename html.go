@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
+
+	"golang.org/x/net/html"
 )
 
 type HTML struct {
@@ -76,6 +79,76 @@ func (html HTML) printColumns(w io.Writer, table *Table) error {
 	}
 
 	fmt.Fprintln(w, "<thead>")
+
+	return nil
+}
+
+func FromHTML(r io.Reader) (*Table, error) {
+	node, err := html.Parse(r)
+	if err != nil {
+		return nil, err
+	}
+
+	table := &Table{}
+
+	p := htmlParser{}
+
+	if err := p.HTML(node, table); err != nil {
+		return nil, err
+	}
+
+	return table, nil
+}
+
+type htmlParser struct {
+}
+
+func (p htmlParser) HTML(node *html.Node, table *Table) error {
+	if node == nil {
+		return fmt.Errorf("node is nil")
+	}
+
+	at := node.DataAtom.String()
+	at = strings.ToLower(at)
+
+	if at == "table" {
+		return p.Table(node, table)
+	}
+
+	for c := node.FirstChild; c != nil; c = c.NextSibling {
+		if err := p.HTML(c, table); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p htmlParser) Table(node *html.Node, table *Table) error {
+	if node == nil {
+		return fmt.Errorf("node is nil")
+	}
+
+	if table == nil {
+		return fmt.Errorf("table is nil")
+	}
+
+	for c := node.FirstChild; c != nil; c = c.NextSibling {
+		at := c.DataAtom.String()
+		at = strings.ToLower(at)
+
+		if at == "thead" {
+			// if err := parseHTMLTableHead(c, table); err != nil {
+			// 	return err
+			// }
+		}
+
+		if at == "tbody" {
+			// if err := parseHTMLTableBody(c, table); err != nil {
+			// 	return err
+			// }
+		}
+	}
 
 	return nil
 }
